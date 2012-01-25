@@ -45,7 +45,12 @@ class aur(object):
 
 	def install_pattern(self, pattern):
 		#self.cu.requires_root()
-		print(self.ta.s(["bold","white"]) + "Download: " + self.ta.s(["blue"]) + pattern)
+		print(
+			self.ta.s(["bold","white"]) + 
+			"Download: " + 
+			self.ta.s(["blue"]) + 
+			pattern
+		)
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
 		x = json.loads(x.decode("utf-8"))
 		if self.corrupted_response(x):
@@ -55,10 +60,20 @@ class aur(object):
 		dl_url = "%s%s" % (self.base_url, dl)
 		self.cu.download(dl_url, "%s/%s" % (self.working_dir, n))
 
-		print(self.ta.s(["bold","white"]) + "Install: " + self.ta.s(["blue"]) + pattern)
+		print(
+			self.ta.s(["bold","white"]) + 
+			"Install: " + 
+			self.ta.s(["blue"]) + 
+			pattern
+		)
 		print(self.ta.s(["bold","white"]) + ">> Unpacking")
 		if not tarfile.is_tarfile("%s/%s" % (self.working_dir, n)):
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any tar-archive")
+			print(
+				self.ta.s(["red", "bold"]) + 
+				"Warning: " + 
+				self.ta.r() + 
+				"Did not find any tar-archive"
+			)
 			sys.exit()
 		fd = tarfile.open("%s/%s" % (self.working_dir, n), 'r:gz')
 		fd.extractall(path = self.working_dir)
@@ -67,14 +82,29 @@ class aur(object):
 		if not os.system("makepkg -fs"):
 			print(self.ta.s(["bold","white"]) + ">> Successfully built")
 		else:
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Error while building")
+			print(
+				self.ta.s(["red", "bold"]) + 
+				"Warning: " + 
+				self.ta.r() + 
+				"Error while building"
+			)
 		print(self.ta.r())
-		pkg_name = pattern + "-" + x["results"][0]["Version"] + "-" + os.uname()[-1] + ".pkg.tar.xz"
+		pkg_name = pattern + 
+			"-" + 
+			x["results"][0]["Version"] + 
+			"-" + 
+			os.uname()[-1] + 
+			".pkg.tar.xz"
 		print(pkg_name)
 		if not os.system("sudo pacman -U %s" % pkg_name):
 			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
 		else:
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Error while installing")
+			print(
+				self.ta.s(["red", "bold"]) + 
+				"Warning: " + 
+				self.ta.r() + 
+				"Error while installing"
+			)
 		print(self.ta.r())
 
 	def show_search(self, dd):
@@ -83,7 +113,15 @@ class aur(object):
 			name = item["Name"]
 			version = item["Version"]
 			desc = item["Description"]
-			print(self.ta.s(["blue", "bold"]) + name + " " + self.ta.s(["green"]) + "(" + version +")")
+			print(
+				self.ta.s(["blue", "bold"]) + 
+				name + 
+				" " + 
+				self.ta.s(["green"]) + 
+				"(" + 
+				version +
+				")"
+			)
 
 	def show_info(self, dd):
 		item = dd["results"]
@@ -102,7 +140,12 @@ class aur(object):
 
 	def corrupted_response(self, data):
 		if data["type"] == "error":
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any corresponding entries (%s)" % data["results"])
+			print(
+				self.ta.s(["red", "bold"]) + 
+				"Warning: " + 
+				self.ta.r() + 
+				"Did not find any corresponding entries (%s)" % data["results"]
+			)
 			return True
 		return False
 
@@ -125,11 +168,23 @@ class core_utils(object):
 
 	def requires_root(self):
 		if os.geteuid() != 0:
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "This operation requires root access.")
+			print(
+				self.ta.s(["red", "bold"]) + 
+				"Warning: " + 
+				self.ta.r() + 
+				"This operation requires root access."
+			)
 			sys.exit()
 
 	def usage(self):
-		print(self.ta.s(["green","bold"]) + "Usage: " + self.ta.s(["cyan","italic"]) + "%s " % sys.argv[0] + self.ta.r() + "<-S[s/i]> <name>")
+		print(
+			self.ta.s(["green","bold"]) + 
+			"Usage: " + 
+			self.ta.s(["cyan","italic"]) + 
+			"%s " % sys.argv[0] + 
+			self.ta.r() + 
+			"<-S[s/i]> <name>"
+		)
 		sys.exit(42)
 
 	def parse_input(self, inp):
@@ -137,7 +192,12 @@ class core_utils(object):
 			self.usage()
 		do = sys.argv[1]
 		if do[0] != "-":
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "First argument has to define action[s]")
+			print(
+				self.ta.s(["red", "bold"]) + 
+				"Warning: " + 
+				self.ta.r() + 
+				"First argument has to define action[s]"
+			)
 			sys.exit()
 		do = do[1:]
 		# "do" contains what to do, e.g. "S", "Ss", ...
