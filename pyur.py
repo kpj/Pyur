@@ -1,4 +1,4 @@
-import urllib, urllib.request, json, sys
+import urllib, urllib.request, json, sys, os, tarfile
 
 class aur(object):
 	def __init__(self):
@@ -29,6 +29,7 @@ class aur(object):
 		return json.loads(x.decode("utf-8"))
 
 	def install_pattern(self, pattern):
+		self.cu.requires_root()
 		print(self.ta.s(["bold","white"]) + "Download: " + self.ta.s(["blue"]) + pattern)
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
 		x = json.loads(x.decode("utf-8"))
@@ -38,7 +39,16 @@ class aur(object):
 		self.cu.download(dl_url, "%s/%s" % (self.working_dir, n))
 
 		print(self.ta.s(["bold","white"]) + "Install: " + self.ta.s(["blue"]) + pattern)
-		print("...")
+		print(self.ta.s(["bold","white"]) + ">> Unpacking")
+		if not tarfile.is_tarfile("%s/%s" % (self.working_dir, n)):
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any tar-archive.")
+			sys.exit()
+		fd = tarfile.open("%s/%s" % (self.working_dir, n), 'r:gz')
+		fd.extractall(path = self.working_dir)
+		os.chdir(os.path.join(self.working_dir, pattern))
+		os.system("ls")
+		print(self.ta.s(["bold","white"]) + ">> Building package")
+		#os.system("makepkg -s")
 
 	def show_search(self, dd):
 		items = dd["results"]
@@ -51,7 +61,7 @@ class aur(object):
 
 class core_utils(object):
 	def __init__(self):
-		pass
+		self.ta = text_attributes()
 
 	def curl(self, url):
 		c = urllib.request.Request(url)
@@ -63,6 +73,11 @@ class core_utils(object):
 			urllib.request.urlretrieve(url, f)
 		except ContentTooShortError:
 			print("There was an error when saving your file...")
+			sys.exit()
+
+	def requires_root(self):
+		if os.geteuid() != 0:
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "This operation requires root access.")
 			sys.exit()
 
 	def parse_input(self, inp):
@@ -91,6 +106,9 @@ class text_attributes(object):
 			"green":32,
 			"white":37,
 		}
+
+	def r(self):
+		return self.base % "0"
 
 	def s(self, args):
 		a = ""
