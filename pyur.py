@@ -97,6 +97,7 @@ class aur(object):
 		print("URL: %s" % url)
 		print("License: %s" % license)
 		print("Maintainer: %s" % maintainer)
+		print("Description: %s" % desc)
 
 	def corrupted_response(self, data):
 		if data["type"] == "error":
