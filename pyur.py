@@ -127,11 +127,11 @@ class core_utils(object):
 
 	def parse_input(self, inp):
 		if len(inp) == 1:
-			print("Exiting with no arguments given...")
+			print(self.ta.s(["green","bold"]) + "Usage: " + self.ta.s(["cyan","italic"]) + "%s " % sys.argv[0] + self.ta.r() + "<-S[s/i]>")
 			sys.exit()
 		do = sys.argv[1]
 		if do[0] != "-":
-			print("First argument has to define action[s]")
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "First argument has to define action[s]")
 			sys.exit()
 		do = do[1:]
 		# "do" contains what to do, e.g. "S", "Ss", ...
@@ -145,9 +145,11 @@ class text_attributes(object):
 			# Styles
 			"normal":0,
 			"bold":1,
+			"italic":3,
 			# Colors
 			"red":31,
 			"blue":34,
+			"cyan":36,
 			"green":32,
 			"white":37,
 		}
