@@ -29,7 +29,7 @@ class aur(object):
 		x = json.loads(x.decode("utf-8"))
 		if self.corrupted_response(x):
 			sys.exit()
-		return json.loads(x.decode("utf-8"))
+		return x
 
 	def install_pattern(self, pattern):
 		#self.cu.requires_root()
@@ -75,7 +75,7 @@ class aur(object):
 
 	def corrupted_response(self, data):
 		if data["type"] == "error":
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any corresponding entries.")
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any corresponding entries (%s)" % data["results"])
 			return True
 		return False
 
