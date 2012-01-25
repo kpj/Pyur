@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import urllib, urllib.request, json, sys, os, tarfile
 
 class aur(object):
@@ -105,6 +106,7 @@ class aur(object):
 			return True
 		return False
 
+
 class core_utils(object):
 	def __init__(self):
 		self.ta = text_attributes()
@@ -126,10 +128,13 @@ class core_utils(object):
 			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "This operation requires root access.")
 			sys.exit()
 
+	def usage(self):
+		print(self.ta.s(["green","bold"]) + "Usage: " + self.ta.s(["cyan","italic"]) + "%s " % sys.argv[0] + self.ta.r() + "<-S[s/i]> <name>")
+		sys.exit(42)
+
 	def parse_input(self, inp):
 		if len(inp) == 1:
-			print(self.ta.s(["green","bold"]) + "Usage: " + self.ta.s(["cyan","italic"]) + "%s " % sys.argv[0] + self.ta.r() + "<-S[s/i]>")
-			sys.exit()
+			self.usage()
 		do = sys.argv[1]
 		if do[0] != "-":
 			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "First argument has to define action[s]")
