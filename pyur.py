@@ -26,6 +26,9 @@ class aur(object):
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
+		x = json.loads(x.decode("utf-8"))
+		if self.corrupted_response(x):
+			sys.exit()
 		return json.loads(x.decode("utf-8"))
 
 	def install_pattern(self, pattern):
@@ -33,6 +36,8 @@ class aur(object):
 		print(self.ta.s(["bold","white"]) + "Download: " + self.ta.s(["blue"]) + pattern)
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
 		x = json.loads(x.decode("utf-8"))
+		if self.corrupted_response(x):
+			sys.exit()
 		n = "%s%s" % (x["results"][0]["Name"], ".tar.gz")
 		dl = x["results"][0]["URLPath"] # First result fits best
 		dl_url = "%s%s" % (self.base_url, dl)
@@ -58,6 +63,11 @@ class aur(object):
 			desc = item["Description"]
 			print(self.ta.s(["blue", "bold"]) + name + " " + self.ta.s(["green"]) + "(" + version +")")
 
+	def corrupted_response(self, data):
+		if data["type"] == "error":
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any corresponding entries.")
+			return True
+		return False
 
 class core_utils(object):
 	def __init__(self):
