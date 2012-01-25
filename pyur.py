@@ -32,7 +32,7 @@ class aur(object):
 		return json.loads(x.decode("utf-8"))
 
 	def install_pattern(self, pattern):
-		self.cu.requires_root()
+		#self.cu.requires_root()
 		print(self.ta.s(["bold","white"]) + "Download: " + self.ta.s(["blue"]) + pattern)
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
 		x = json.loads(x.decode("utf-8"))
@@ -46,14 +46,24 @@ class aur(object):
 		print(self.ta.s(["bold","white"]) + "Install: " + self.ta.s(["blue"]) + pattern)
 		print(self.ta.s(["bold","white"]) + ">> Unpacking")
 		if not tarfile.is_tarfile("%s/%s" % (self.working_dir, n)):
-			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any tar-archive.")
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Did not find any tar-archive")
 			sys.exit()
 		fd = tarfile.open("%s/%s" % (self.working_dir, n), 'r:gz')
 		fd.extractall(path = self.working_dir)
 		os.chdir(os.path.join(self.working_dir, pattern))
-		os.system("ls")
 		print(self.ta.s(["bold","white"]) + ">> Building package")
-		#os.system("makepkg -s")
+		if not os.system("makepkg -fs"):
+			print(self.ta.s(["bold","white"]) + ">> Successfully built")
+		else:
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Error while building")
+		print(self.ta.r())
+		pkg_name = pattern + "-" + x["results"][0]["Version"] + "-" + os.uname()[-1] + ".pkg.tar.xz"
+		print(pkg_name)
+		if not os.system("sudo pacman -U %s" % pkg_name):
+			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
+		else:
+			print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + "Error while installing")
+		print(self.ta.r())
 
 	def show_search(self, dd):
 		items = dd["results"]
