@@ -89,13 +89,12 @@ class aur(object):
 				"Error while building"
 			)
 		print(self.ta.r())
-		pkg_name = pattern + 
+		pkg_name = (pattern + 
 			"-" + 
 			x["results"][0]["Version"] + 
 			"-" + 
 			os.uname()[-1] + 
-			".pkg.tar.xz"
-		print(pkg_name)
+			".pkg.tar.xz")
 		if not os.system("sudo pacman -U %s" % pkg_name):
 			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
 		else:
