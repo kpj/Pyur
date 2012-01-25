@@ -12,6 +12,7 @@ class aur(object):
 		self.working_dir = "/tmp"
 
 		self.search_arg = "search"
+		self.info_arg = "info"
 
 	def handle_start(self):
 		todo, data = self.cu.parse_input(sys.argv)
@@ -20,12 +21,22 @@ class aur(object):
 			if todo[1] == "s":
 				for d in data:
 					self.show_search(self.search_pattern(d))
+			if todo[1] == "i":
+				for d in data:
+					self.show_info(self.info_pattern(d))
 			if todo[1] == " ":
 				for d in data:
 					self.install_pattern(d)
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
+		x = json.loads(x.decode("utf-8"))
+		if self.corrupted_response(x):
+			sys.exit()
+		return x
+
+	def info_pattern(self, pattern):
+		x = self.curl(self.com_url % (self.info_arg, pattern) )
 		x = json.loads(x.decode("utf-8"))
 		if self.corrupted_response(x):
 			sys.exit()
@@ -72,6 +83,20 @@ class aur(object):
 			version = item["Version"]
 			desc = item["Description"]
 			print(self.ta.s(["blue", "bold"]) + name + " " + self.ta.s(["green"]) + "(" + version +")")
+
+	def show_info(self, dd):
+		item = dd["results"]
+		name = item["Name"]
+		version = item["Version"]
+		desc = item["Description"]
+		url = item["URL"]
+		license = item["License"]
+		maintainer = item["Maintainer"]
+		print("Name: %s" % name)
+		print("Version: %s" % version)
+		print("URL: %s" % url)
+		print("License: %s" % license)
+		print("Maintainer: %s" % maintainer)
 
 	def corrupted_response(self, data):
 		if data["type"] == "error":
