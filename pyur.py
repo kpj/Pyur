@@ -47,7 +47,7 @@ class aur(object):
 			nargs="?", 
 			default=False, 
 			const=True,
-			help="Access online mode", 
+			help="Access online mode / Install application", 
 			metavar="name"
 		)
 		parser.add_argument(
