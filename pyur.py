@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import urllib, urllib.request, json, sys, os, tarfile
+import urllib, urllib.request, json, sys, os, tarfile, subprocess
 
 class aur(object):
 	def __init__(self):
@@ -22,12 +22,14 @@ class aur(object):
 			if todo[1] == "s":
 				for d in data:
 					self.show_search(self.search_pattern(d))
-			if todo[1] == "i":
+			elif todo[1] == "i":
 				for d in data:
 					self.show_info(self.info_pattern(d))
-			if todo[1] == " ":
+			elif todo[1] == " ":
 				for d in data:
 					self.install_pattern(d)
+			elif todo[1] == "y":
+				self.upgrade_all()
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
@@ -35,6 +37,43 @@ class aur(object):
 		if self.corrupted_response(x):
 			sys.exit()
 		return x
+
+	def upgrade_all(self):
+		print("Identifieing AUR-packages")
+		l = subprocess.check_output(["pacman", "-Qm"]).decode("utf-8").split('\n')
+		needs_update = []
+		length = len(l)
+		num = 1
+		for e in l:
+			num += 1
+			if e != "":
+				name = e.split(" ")[0]
+				version = e.split(" ")[1]
+
+				to_print = "Checking " + name
+				spacer = " " * (40 - len(to_print))
+				info = "[%i/%i]" % (num, length)
+				bar = self.cu.gen_bar(num, length)
+				back = "\r" * len(to_print)
+				print(to_print + spacer + info + bar + back, end="")
+
+				online_version = self.get_version(name)
+				if online_version == "kpjkpjkpj":
+					continue
+				if not online_version == version:
+					needs_update.append(name)
+		print("" ,end="\n")
+		print("Installing updates")
+		for n in needs_update:
+			self.install_pattern(n)
+
+	def get_version(self, pattern):
+		x = self.curl(self.com_url % (self.search_arg, pattern) )
+		x = json.loads(x.decode("utf-8"))
+		if x["type"] == "error":
+			return "kpjkpjkpj"
+		items = x["results"]
+		return items[0]["Version"]
 
 	def info_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.info_arg, pattern) )
@@ -55,6 +94,7 @@ class aur(object):
 		x = json.loads(x.decode("utf-8"))
 		if self.corrupted_response(x):
 			sys.exit()
+		name = x["results"][0]["Name"]
 		n = "%s%s" % (x["results"][0]["Name"], ".tar.gz")
 		dl = x["results"][0]["URLPath"] # First result fits best
 		dl_url = "%s%s" % (self.base_url, dl)
@@ -64,32 +104,22 @@ class aur(object):
 			self.ta.s(["bold","white"]) + 
 			"Install: " + 
 			self.ta.s(["blue"]) + 
-			pattern
+			name
 		)
 		print(self.ta.s(["bold","white"]) + ">> Unpacking")
 		if not tarfile.is_tarfile("%s/%s" % (self.working_dir, n)):
-			print(
-				self.ta.s(["red", "bold"]) + 
-				"Warning: " + 
-				self.ta.r() + 
-				"Did not find any tar-archive"
-			)
+			self.cu.print_warning("Did not find any tar-archive")
 			sys.exit()
 		fd = tarfile.open("%s/%s" % (self.working_dir, n), 'r:gz')
 		fd.extractall(path = self.working_dir)
-		os.chdir(os.path.join(self.working_dir, pattern))
+		os.chdir(os.path.join(self.working_dir, name))
 		print(self.ta.s(["bold","white"]) + ">> Building package")
 		if not os.system("makepkg -fs"):
 			print(self.ta.s(["bold","white"]) + ">> Successfully built")
 		else:
-			print(
-				self.ta.s(["red", "bold"]) + 
-				"Warning: " + 
-				self.ta.r() + 
-				"Error while building"
-			)
+			self.cu.print_warning("Error while building")
 		print(self.ta.r())
-		pkg_name = (pattern + 
+		pkg_name = (name + 
 			"-" + 
 			x["results"][0]["Version"] + 
 			"-" + 
@@ -98,12 +128,7 @@ class aur(object):
 		if not os.system("sudo pacman -U %s" % pkg_name):
 			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
 		else:
-			print(
-				self.ta.s(["red", "bold"]) + 
-				"Warning: " + 
-				self.ta.r() + 
-				"Error while installing"
-			)
+			self.cu.print_warning("Error while installing")
 		print(self.ta.r())
 
 	def show_search(self, dd):
@@ -139,12 +164,7 @@ class aur(object):
 
 	def corrupted_response(self, data):
 		if data["type"] == "error":
-			print(
-				self.ta.s(["red", "bold"]) + 
-				"Warning: " + 
-				self.ta.r() + 
-				"Did not find any corresponding entries (%s)" % data["results"]
-			)
+			self.cu.print_warning("Did not find any corresponding entries (%s)" % data["results"])
 			return True
 		return False
 
@@ -152,6 +172,7 @@ class aur(object):
 class core_utils(object):
 	def __init__(self):
 		self.ta = text_attributes()
+		self.back = len("") # For cool on-line writing
 
 	def curl(self, url):
 		c = urllib.request.Request(url)
@@ -164,6 +185,17 @@ class core_utils(object):
 		except ContentTooShortError:
 			print("There was an error when saving your file...")
 			sys.exit()
+
+	def gen_bar(self, state, maximum, scale = 4):
+		perc = round(( 100 / maximum ) * state)
+		ticks = round(perc / scale)
+		if ticks > maximum:
+			ticks = maximum
+		bar = "[%s%s]" % ("#" * ticks, " " * round((100/scale - ticks)))
+		return bar
+
+	def print_warning(self, string):
+		print(self.ta.s(["red", "bold"]) + "Warning: " + self.ta.r() + string)
 
 	def requires_root(self):
 		if os.geteuid() != 0:
@@ -182,7 +214,7 @@ class core_utils(object):
 			self.ta.s(["cyan","italic"]) + 
 			"%s " % sys.argv[0] + 
 			self.ta.r() + 
-			"<-S[s/i]> <name>"
+			"<-S[s/i/y]> [name]"
 		)
 		sys.exit(42)
 
