@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import urllib, urllib.request, json, sys, os, tarfile, subprocess
+import urllib, urllib.request, json, sys, os, tarfile, subprocess, argparse
 
 class aur(object):
 	def __init__(self):
@@ -14,6 +14,10 @@ class aur(object):
 
 		self.search_arg = "search"
 		self.info_arg = "info"
+
+		self.additional_pacman_args = "--noconfirm"
+
+		self.get_aur_pkg = ["pacman", "-Qm"]
 
 	def handle_start(self):
 		todo, data = self.cu.parse_input(sys.argv)
@@ -31,6 +35,52 @@ class aur(object):
 			elif todo[1] == "y":
 				self.upgrade_all()
 
+	def handle_start2(self):
+		parser = argparse.ArgumentParser(
+			description='This tool is designed to cope with all aur-packets.', 
+			epilog="Bugreports to googlemail.com@kpjkpjkpjkpjkpjkpj (use your brain) Any copyrights (just in case) go to kpj Licenses: <insert cool open-source licenses here>"
+		)
+
+		parser.add_argument(
+			'-S', 
+			action="store", 
+			nargs="?", 
+			default=False, 
+			const=True,
+			help="Access online mode", 
+			metavar="name"
+		)
+		parser.add_argument(
+			'-i', 
+			action="append", 
+			nargs='+', 
+			help="Get information about apps", 
+			metavar="name"
+		)
+		parser.add_argument(
+			'-s',
+			action="store", 
+			nargs=1, 
+			help="Search for an app", 
+			metavar="name"
+		)
+
+		args = parser.parse_args()
+		if args.S:
+			if args.i:
+				for n in args.i:
+					self.info_pattern(n)
+			elif args.s:
+				self.search_pattern(args.s)
+			else:
+				if args.S == True:
+					print("And now?")
+				else:
+					self.install_pattern(args.S)
+		else:
+			self.cu.print_warning("No mode defined")
+		print(args)
+
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
 		x = json.loads(x.decode("utf-8"))
@@ -40,7 +90,7 @@ class aur(object):
 
 	def upgrade_all(self):
 		print("Identifieing AUR-packages")
-		l = subprocess.check_output(["pacman", "-Qm"]).decode("utf-8").split('\n')
+		l = subprocess.check_output(self.get_aur_pkg).decode("utf-8").split('\n')
 		needs_update = []
 		length = len(l)
 		num = 1
@@ -125,7 +175,7 @@ class aur(object):
 			"-" + 
 			os.uname()[-1] + 
 			".pkg.tar.xz")
-		if not os.system("sudo pacman -U %s" % pkg_name):
+		if not os.system("sudo pacman -U %s %s" % (pkg_name, self.additional_pacman_args)):
 			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
 		else:
 			self.cu.print_warning("Error while installing")
@@ -261,4 +311,4 @@ class text_attributes(object):
 		a = a[:-1] # Remove last ";"
 		return self.base % "0" + self.base % a
 
-aur().handle_start()
+aur().handle_start2()
