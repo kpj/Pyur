@@ -69,9 +69,9 @@ class aur(object):
 		if args.S:
 			if args.i:
 				for n in args.i:
-					self.info_pattern(n)
+					self.show_info(self.info_pattern(n[0]))
 			elif args.s:
-				self.search_pattern(args.s)
+				self.show_search(self.search_pattern(args.s[0]))
 			else:
 				if args.S == True:
 					print("And now?")
@@ -79,7 +79,6 @@ class aur(object):
 					self.install_pattern(args.S)
 		else:
 			self.cu.print_warning("No mode defined")
-		print(args)
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
