@@ -15,7 +15,7 @@ class aur(object):
 		self.search_arg = "search"
 		self.info_arg = "info"
 
-		self.additional_pacman_args = "--noconfirm"
+		self.additional_pacman_args = ""
 
 		self.get_aur_pkg = ["pacman", "-Qm"]
 
@@ -38,7 +38,7 @@ class aur(object):
 	def handle_start2(self):
 		parser = argparse.ArgumentParser(
 			description='This tool is designed to cope with all aur-packets.', 
-			epilog="Bugreports to googlemail.com@kpjkpjkpjkpjkpjkpj (use your brain) Any copyrights (just in case) go to kpj Licenses: <insert cool open-source licenses here>"
+			epilog="Bugreports to googlemail.com@kpjkpjkpjkpjkpjkpj (use your brain) Any copyrights (just in case) go to kpj Licenses: <insert cool open-source licenses here, e.g. GPL>"
 		)
 
 		parser.add_argument(
@@ -64,6 +64,18 @@ class aur(object):
 			help="Search for an app", 
 			metavar="name"
 		)
+		parser.add_argument(
+			'-y',
+			action="store_true",
+			default=False,
+			help="Update all aur-related packets"
+		)
+		parser.add_argument(
+			'--noconfirm',
+			action="store_true",
+			default=False,
+			help="Do not ask for any permissions"
+		)
 
 		args = parser.parse_args()
 		if args.S:
@@ -72,6 +84,8 @@ class aur(object):
 					self.show_info(self.info_pattern(n[0]))
 			elif args.s:
 				self.show_search(self.search_pattern(args.s[0]))
+			elif args.y:
+				self.upgrade_all()
 			else:
 				if args.S == True:
 					print("And now?")
@@ -79,6 +93,10 @@ class aur(object):
 					self.install_pattern(args.S)
 		else:
 			self.cu.print_warning("No mode defined")
+
+		if args.noconfirm:
+			self.additional_pacman_args += "--noconfirm "
+		print(self.additional_pacman_args)
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
