@@ -113,13 +113,13 @@ class aur(object):
 		return x
 
 	def upgrade_all(self):
-		print("Identifieing AUR-packages")
+		print(self.ta.w("Identifying AUR-packages", ["white","bold"]))
 		l = subprocess.check_output(self.get_aur_pkg).decode("utf-8").split('\n')
 		needs_update = []
+		was_error = []
 		length = len(l)
 		num = 1
 		for e in l:
-			num += 1
 			if e != "":
 				name = e.split(" ")[0]
 				version = e.split(" ")[1]
@@ -130,13 +130,24 @@ class aur(object):
 				bar = self.cu.gen_bar(num, length)
 				back = "\r" * len(to_print)
 				print(to_print + spacer + info + bar + back, end="")
-
+				num += 1
 				online_version = self.get_version(name)
 				if online_version == "kpjkpjkpj":
+					was_error.append(name)
 					continue
 				if not online_version == version:
 					needs_update.append(name)
 		print("" ,end="\n")
+		lnu = len(needs_update)
+		lwe = len(was_error)
+		print(
+			self.ta.w("%i" % (length - (lnu + lwe)), ["green"]) + 
+			" up-to-date / " +
+			self.ta.w("%i" % lwe, ["red"]) +
+			" errors / " +
+			self.ta.w("%i" % lnu, ["blue"]) +
+			" updates"
+		)
 		print("Installing updates")
 		for n in needs_update:
 			self.install_pattern(n)
@@ -202,7 +213,10 @@ class aur(object):
 		if not os.system("sudo pacman -U %s %s" % (pkg_name, self.additional_pacman_args)):
 			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
 		else:
-			self.cu.print_warning("Error while installing")
+			if not os.system("sudo pacman -U %s %s" % ("%s*pkg.tar*" % name, self.additional_pacman_args)):
+				print(self.ta.s(["bold","white"]) + ">> Successfully installed")
+			else:
+				self.cu.print_warning("Error while installing")
 		print(self.ta.r())
 
 	def show_search(self, dd):
@@ -325,10 +339,13 @@ class text_attributes(object):
 			"white":37,
 		}
 
-	def r(self):
+	def r(self): # reset
 		return self.base % "0"
 
-	def s(self, args):
+	def w(self, string, style): # write
+		return self.s(style) + string + self.r()
+
+	def s(self, args): # set
 		a = ""
 		for v in args:
 			a += "%s;" % self.translate[str(v)]
