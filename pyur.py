@@ -6,11 +6,13 @@ class aur(object):
 		self.cu = core_utils()
 		self.curl = self.cu.curl
 		self.ta = text_attributes()
+		self.prog = prog_itself()
 
 		self.base_url = "http://aur.archlinux.org"
 		self.com_url = "%s/rpc.php?type=%s&arg=%s" % (self.base_url, "%s", "%s")
 
-		self.working_dir = "/tmp"
+		self.working_dir = "/tmp/%s-%s" % (self.prog.app_name, self.prog.app_version)
+		self.check_working_dir()
 
 		self.search_arg = "search"
 		self.info_arg = "info"
@@ -34,6 +36,12 @@ class aur(object):
 					self.install_pattern(d)
 			elif todo[1] == "y":
 				self.upgrade_all()
+
+	def check_working_dir(self):
+		try:
+			os.mkdir(self.working_dir)
+		except OSError:
+			pass
 
 	def handle_start2(self):
 		parser = argparse.ArgumentParser(
@@ -96,7 +104,6 @@ class aur(object):
 
 		if args.noconfirm:
 			self.additional_pacman_args += "--noconfirm "
-		print(self.additional_pacman_args)
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
@@ -327,5 +334,10 @@ class text_attributes(object):
 			a += "%s;" % self.translate[str(v)]
 		a = a[:-1] # Remove last ";"
 		return self.base % "0" + self.base % a
+
+class prog_itself(object):
+	def __init__(self):
+		self.app_name="Pyur"
+		self.app_version="0.2.3"
 
 aur().handle_start2()
