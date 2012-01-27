@@ -1,6 +1,6 @@
 #!/usr/bin/python
-import json, sys, os, tarfile, subprocess, argparse # stdlibs
-import utils # own libs
+import json, sys, os, tarfile, subprocess # stdlibs
+import utils, arg_parser # own libs
 
 class aur(object):
 	def __init__(self):
@@ -22,71 +22,14 @@ class aur(object):
 
 		self.get_aur_pkg = ["pacman", "-Qm"]
 
-	def handle_start(self):
-		todo, data = self.cu.parse_input(sys.argv)
-		todo = "%s%s" % (todo, "      ")
-		if todo[0] == "S":
-			if todo[1] == "s":
-				for d in data:
-					self.show_search(self.search_pattern(d))
-			elif todo[1] == "i":
-				for d in data:
-					self.show_info(self.info_pattern(d))
-			elif todo[1] == " ":
-				for d in data:
-					self.install_pattern(d)
-			elif todo[1] == "y":
-				self.upgrade_all()
-
 	def check_working_dir(self):
 		try:
 			os.mkdir(self.working_dir)
 		except OSError:
 			pass
 
-	def handle_start2(self):
-		parser = argparse.ArgumentParser(
-			description='This tool is designed to cope with all aur-packets.', 
-			epilog="Bugreports to googlemail.com@kpjkpjkpjkpjkpjkpj (use your brain) Any copyrights (just in case) go to kpj Licenses: <insert cool open-source licenses here, e.g. GPL>"
-		)
-
-		parser.add_argument(
-			'-S', 
-			action="store", 
-			nargs="?", 
-			default=False, 
-			const=True,
-			help="Access online mode / Install application", 
-			metavar="name"
-		)
-		parser.add_argument(
-			'-i', 
-			action="append", 
-			nargs='+', 
-			help="Get information about apps", 
-			metavar="name"
-		)
-		parser.add_argument(
-			'-s',
-			action="store", 
-			nargs=1, 
-			help="Search for an app", 
-			metavar="name"
-		)
-		parser.add_argument(
-			'-y',
-			action="store_true",
-			default=False,
-			help="Update all aur-related packets"
-		)
-		parser.add_argument(
-			'--noconfirm',
-			action="store_true",
-			default=False,
-			help="Do not ask for any permissions"
-		)
-
-		args = parser.parse_args()
+	def handle_start(self):
+		args = arg_parser.setup_argparser()
 		if args.S:
 			if args.i:
 				for n in args.i:
@@ -263,4 +206,4 @@ class prog_itself(object):
 		self.app_name="Pyur"
 		self.app_version="0.2.3"
 
-aur().handle_start2()
+aur().handle_start()
