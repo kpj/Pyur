@@ -215,6 +215,6 @@ class aur(object):
 class prog_itself(object):
 	def __init__(self):
 		self.app_name="Pyur"
-		self.app_version="0.2.3"
+		self.app_version="0.2.4"
 
 aur().handle_start()
