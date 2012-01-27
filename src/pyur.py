@@ -8,6 +8,7 @@ class aur(object):
 		self.curl = self.cu.curl
 		self.ta = utils.text_attributes()
 		self.prog = prog_itself()
+		self.fo = utils.file_operations()
 
 		self.base_url = "http://aur.archlinux.org"
 		self.com_url = "%s/rpc.php?type=%s&arg=%s" % (self.base_url, "%s", "%s")
@@ -28,7 +29,11 @@ class aur(object):
 		except OSError:
 			pass
 
+	def handle_more(self):
+		self.config = self.fo.parse_config()
+
 	def handle_start(self):
+		self.handle_more()
 		args = arg_parser.setup_argparser()
 		if args.S:
 			if args.i:
@@ -45,7 +50,6 @@ class aur(object):
 					self.install_pattern(args.S)
 		else:
 			self.cu.print_warning("No mode defined")
-
 		if args.noconfirm:
 			self.additional_pacman_args += "--noconfirm "
 
@@ -61,6 +65,7 @@ class aur(object):
 		l = subprocess.check_output(self.get_aur_pkg).decode("utf-8").split('\n')
 		needs_update = []
 		was_error = []
+		just_not = []
 		length = len(l)
 		num = 1
 		for e in l:
@@ -80,16 +85,22 @@ class aur(object):
 					was_error.append(name)
 					continue
 				if not online_version == version:
-					needs_update.append(name)
+					if not name in self.config["ignore_pkg"]:
+						needs_update.append(name)
+					else:
+						just_not.append(name)
 		print("" ,end="\n")
 		lnu = len(needs_update)
 		lwe = len(was_error)
+		ljn = len(just_not)
 		print(
-			self.ta.w("%i" % (length - (lnu + lwe)), ["green"]) + 
+			self.ta.w("%i" % (length - (lnu + lwe + ljn)), ["green", "bold"]) + 
 			" up-to-date / " +
-			self.ta.w("%i" % lwe, ["red"]) +
+			self.ta.w("%i" % lwe, ["red", "bold"]) +
 			" errors / " +
-			self.ta.w("%i" % lnu, ["blue"]) +
+			self.ta.w("%i" % ljn, ["violet", "bold"]) +
+			" excluded / " +
+			self.ta.w("%i" % lnu, ["blue", "bold"]) +
 			" updates"
 		)
 		print("Installing updates")

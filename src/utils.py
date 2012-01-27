@@ -1,4 +1,4 @@
-import urllib, urllib.request
+import urllib, urllib.request, os, sys
 
 class core_utils(object):
 	def __init__(self):
@@ -50,6 +50,39 @@ class core_utils(object):
 		sys.exit(42)
 
 
+class file_operations(object):
+	def __init__(self):
+		self.base_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+		self.path2config = "%s/../config/pyur.conf" % self.base_path
+
+	def parse_config(self):
+		fd = open(self.path2config, "r")
+		c = fd.read()
+		fd.close()
+		lines = c.split("\n")
+		to_remove = []
+		for l in lines:
+			try:
+				if l[0] == "#":
+					to_remove.append(l)
+			except IndexError:
+				pass
+		for r in to_remove:
+			lines.remove(r)
+			try:
+				lines.remove("")
+			except ValueError:
+				pass
+		config = {}
+		for l in lines:
+			var_name = l.split("=")[0].replace(" ","")
+			var_vals = []
+			for e in l.split("=")[1].split(" "):
+				if e != "":
+					var_vals.append(e.replace(" ",""))
+			config[var_name] = var_vals
+		return config
+
 class text_attributes(object):
 	def __init__(self):
 		self.base = '\033[%sm'
@@ -61,6 +94,7 @@ class text_attributes(object):
 			"italic":3,
 			# Colors
 			"red":31,
+			"violet":"35",
 			"blue":34,
 			"cyan":36,
 			"green":32,
