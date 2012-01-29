@@ -73,7 +73,7 @@ class aur(object):
 				name = e.split(" ")[0]
 				version = e.split(" ")[1]
 
-				to_print = "Checking " + name
+				to_print = "Checking: " + name
 				spacer = " " * (40 - len(to_print))
 				info = "[%i/%i]" % (num, length)
 				bar = self.cu.gen_bar(num, length)
@@ -113,6 +113,14 @@ class aur(object):
 		if x["type"] == "error":
 			return "kpjkpjkpj"
 		items = x["results"]
+		if len(items) != 1:
+			if items[0]["Name"] != pattern:
+				# No distinct packet defined
+				for i in items:
+					if i["Name"] == pattern:
+						return i["Version"]
+					else:
+						return "kpjkpjkpj"
 		return items[0]["Version"]
 
 	def info_pattern(self, pattern):
@@ -136,6 +144,10 @@ class aur(object):
 			sys.exit()
 		name = x["results"][0]["Name"]
 		n = "%s%s" % (x["results"][0]["Name"], ".tar.gz")
+		if len(x["results"]) > 1:
+			if name != pattern:
+				self.cu.print_warning("Specify your search pattern")
+				sys.exit()
 		dl = x["results"][0]["URLPath"] # First result fits best
 		dl_url = "%s%s" % (self.base_url, dl)
 		self.cu.download(dl_url, "%s/%s" % (self.working_dir, n))
