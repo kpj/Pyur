@@ -143,12 +143,20 @@ class aur(object):
 		if self.corrupted_response(x):
 			sys.exit()
 		name = x["results"][0]["Name"]
-		n = "%s%s" % (x["results"][0]["Name"], ".tar.gz")
+		got_it = False
 		if len(x["results"]) > 1:
-			if name != pattern:
+			for u in x["results"]:
+				if u["Name"] == pattern:
+					name = u["Name"]
+					dl = u["URLPath"]
+					got_it = True
+			if not got_it:
 				self.cu.print_warning("Specify your search pattern")
 				sys.exit()
-		dl = x["results"][0]["URLPath"] # First result fits best
+		else:
+			name = x["results"][0]["Name"]
+			dl = x["results"][0]["URLPath"]
+		n = "%s%s" % (name, ".tar.gz")
 		dl_url = "%s%s" % (self.base_url, dl)
 		self.cu.download(dl_url, "%s/%s" % (self.working_dir, n))
 
@@ -166,25 +174,10 @@ class aur(object):
 		fd.extractall(path = self.working_dir)
 		os.chdir(os.path.join(self.working_dir, name))
 		print(self.ta.s(["bold","white"]) + ">> Building package")
-		if not os.system("makepkg -fs"):
-			print(self.ta.s(["bold","white"]) + ">> Successfully built")
+		if not os.system("makepkg -fs -i"):
+			print(self.ta.s(["bold","white"]) + ">> Successfully built and installed")
 		else:
-			self.cu.print_warning("Error while building")
-		print(self.ta.r())
-		pkg_name = (name + 
-			"-" + 
-			x["results"][0]["Version"] + 
-			"-" + 
-			os.uname()[-1] + 
-			".pkg.tar.xz")
-		if not os.system("sudo pacman -U %s %s" % (pkg_name, self.additional_pacman_args)):
-			print(self.ta.s(["bold","white"]) + ">> Successfully installed")
-		else:
-			if not os.system("sudo pacman -U %s %s" % ("%s*pkg.tar*" % name, self.additional_pacman_args)):
-				print(self.ta.s(["bold","white"]) + ">> Successfully installed")
-			else:
-				self.cu.print_warning("Error while installing")
-		print(self.ta.r())
+			self.cu.print_warning("Error while building or installing")
 
 	def show_search(self, dd):
 		items = dd["results"]
