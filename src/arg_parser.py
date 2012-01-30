@@ -41,4 +41,13 @@ def setup_argparser():
 		default=False,
 		help="Do not ask for any permissions"
 	)
+
+	parser.add_argument(
+		'-R',
+		action="store",
+		nargs="+",
+		help="Remove a package",
+		metavar="name"
+	)
+
 	return parser.parse_args()

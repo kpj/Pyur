@@ -45,13 +45,20 @@ class aur(object):
 				self.upgrade_all()
 			else:
 				if args.S == True:
-					print("And now?")
+					print("Append a name or option")
 				else:
 					self.install_pattern(args.S)
+		elif args.R:
+			for n in args.R:
+				self.delete_pattern(n)
 		else:
 			self.cu.print_warning("No mode defined")
 		if args.noconfirm:
 			self.additional_pacman_args += "--noconfirm "
+
+	def delete_pattern(self, pattern):
+		self.cu.requires_root()
+		os.system("pacman -R %s" % pattern)
 
 	def search_pattern(self, pattern):
 		x = self.curl(self.com_url % (self.search_arg, pattern) )
@@ -131,7 +138,6 @@ class aur(object):
 		return x
 
 	def install_pattern(self, pattern):
-		#self.cu.requires_root()
 		print(
 			self.ta.s(["bold","white"]) + 
 			"Download: " + 
