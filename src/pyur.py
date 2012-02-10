@@ -164,26 +164,26 @@ class aur(object):
 			dl = x["results"][0]["URLPath"]
 		n = "%s%s" % (name, ".tar.gz")
 		dl_url = "%s%s" % (self.base_url, dl)
-		self.cu.download(dl_url, "%s/%s" % (self.working_dir, n))
+		if self.cu.download(dl_url, "%s/%s" % (self.working_dir, n)):
 
-		print(
-			self.ta.s(["bold","white"]) + 
-			"Install: " + 
-			self.ta.s(["blue"]) + 
-			name
-		)
-		print(self.ta.s(["bold","white"]) + ">> Unpacking")
-		if not tarfile.is_tarfile("%s/%s" % (self.working_dir, n)):
-			self.cu.print_warning("Did not find any tar-archive")
-			sys.exit()
-		fd = tarfile.open("%s/%s" % (self.working_dir, n), 'r:gz')
-		fd.extractall(path = self.working_dir)
-		os.chdir(os.path.join(self.working_dir, name))
-		print(self.ta.s(["bold","white"]) + ">> Building package")
-		if not os.system("makepkg -fs -i"):
-			print(self.ta.s(["bold","white"]) + ">> Successfully built and installed")
-		else:
-			self.cu.print_warning("Error while building or installing")
+			print(
+				self.ta.s(["bold","white"]) + 
+				"Install: " + 
+				self.ta.s(["blue"]) + 
+				name
+			)
+			print(self.ta.s(["bold","white"]) + ">> Unpacking")
+			if not tarfile.is_tarfile("%s/%s" % (self.working_dir, n)):
+				self.cu.print_warning("Did not find any tar-archive")
+				sys.exit()
+			fd = tarfile.open("%s/%s" % (self.working_dir, n), 'r:gz')
+			fd.extractall(path = self.working_dir)
+			os.chdir(os.path.join(self.working_dir, name))
+			print(self.ta.s(["bold","white"]) + ">> Building package")
+			if not os.system("makepkg -fs -i"):
+				print(self.ta.s(["bold","white"]) + ">> Successfully built and installed")
+			else:
+				self.cu.print_warning("Error while building or installing")
 
 	def show_search(self, dd):
 		items = dd["results"]

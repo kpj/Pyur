@@ -12,10 +12,15 @@ class core_utils(object):
 
 	def download(self, url, f):
 		try:
-			urllib.request.urlretrieve(url, f)
-		except ContentTooShortError:
-			print("There was an error when saving your file...")
-			sys.exit()
+			try:
+				urllib.request.urlretrieve(url, f)
+			except ContentTooShortError:
+				self.print_warning("There was an error when saving your file...")
+				return False
+		except NameError:
+			self.print_warning("There was an error when saving your file...")
+			return False
+		return True
 
 	def gen_bar(self, state, maximum, scale = 4):
 		perc = round(( 100 / maximum ) * state)
